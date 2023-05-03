@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import {
   ADDRESSES,
   SEARCH_TYPES,
   SERVICE_TYPES,
+  REQUEST_PARAMS
 } from "../../constants/constants";
-import { addServiceRequest } from "../../models/firebase";
+import { addServiceRequest, getPaymentBalanceByAddress } from "../../models/firebase";
 
 export default function NewRequest() {
+  const [canProceed, setCanProceed] = useState(false);
+  const [showPaymentError, setShowPaymentError] = useState(false);
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [serviceType, setServiceType] = useState("");
@@ -19,8 +22,11 @@ export default function NewRequest() {
   });
   const [requestId, setRequestId] = useState(null);
   const history = useHistory();
+  const location = useLocation();
 
-  const handleChange = (event) => {
+  let params = new URLSearchParams(location.search);
+
+  const handleChange = async (event) => {
     if (event) {
       event.preventDefault();
     }
@@ -78,6 +84,20 @@ export default function NewRequest() {
         break;
       case "flatInput":
         setAddress({ ...address, flat: value });
+        if(params.has(REQUEST_PARAMS.SERVICE_TYPE)) {
+          setServiceType(params.get(REQUEST_PARAMS.SERVICE_TYPE))
+        }
+        let paymentDtl;
+        if(!params.has(REQUEST_PARAMS.BY_PASS)) {
+          paymentDtl = await getPaymentBalanceByAddress(`${address.block}${address.building}${value}`)
+        }
+        if(params.has(REQUEST_PARAMS.BY_PASS) || paymentDtl.balance <= 0) {
+          setCanProceed(true)
+          setShowPaymentError(false)
+        } else {
+          setCanProceed(false)
+          setShowPaymentError(true)
+        }
         break;
     }
   };
@@ -88,7 +108,7 @@ export default function NewRequest() {
     let addedRequestId = await addServiceRequest(
       name,
       mobile,
-      `${address.block}-${address.building}-${address.flat}`,
+      `${address.block}${address.building}${address.flat}`,
       serviceType,
       details
     );
@@ -107,7 +127,9 @@ export default function NewRequest() {
             <p>Request ID: {requestId}</p>
             <p>Thanks for raising your concern, <br/>
                The service man should visit your place in 3 Business Days,<br/>
-               Kindly stay available from 17:00 to 19:00</p>
+               Kindly stay available from 17:00 to 19:00<br/><br/>
+               
+               Please have a look at the <a href="https://bit.ly/aoa78-services-offered" target = "_blank">Services Offered page</a>.</p>
             <button
               className="btn btn-primary"
               onClick={() =>
@@ -130,40 +152,8 @@ export default function NewRequest() {
       <div className="container pb-5 pt-5">
         <div className="bg-white p-4 p-lg-5">
           <h2 className="mb-4">New Service Request</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-row row">
-              <div className="form-group col-md-6">
-                <label htmlFor="nameInput">Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="nameInput"
-                  name="nameInput"
-                  placeholder="Enter name..."
-                  value={name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-            <div className="form-row row">
-              <div className="form-group col-md-6">
-                <label htmlFor="mobileInput">Mobile No.</label>
-                <input
-                  type="tel"
-                  className="form-control"
-                  id="mobileInput"
-                  name="mobileInput"
-                  placeholder="Enter mobile number..."
-                  value={mobile}
-                  onChange={handleChange}
-                  title="(Ten digit numbers only)"
-                  pattern="\d{10}"
-                  required
-                />
-              </div>
-            </div>
-            <div className="form-row row">
+          <form className="border p-3" onSubmit={handleSubmit}>
+          <div className="form-row row">
               <div className="col-md-4">
                 <div className="form-group">
                   <label htmlFor="blockInput">Block</label>
@@ -236,6 +226,47 @@ export default function NewRequest() {
                 </div>
               </div>
             </div>
+            {showPaymentError && <>
+            <div align="center">
+              <h3> <span className="text-danger"> Oops !.. </span><br/> It seems you have dues in your RWA subscription </h3>
+              <br/> Please clear them and come back again tomorrow. 
+              <br/> To know your dues, <a href="https://wa.me/919810762010?text=Hi" target="_blank">please reach out the Treasurer</a>
+            </div>
+            </>
+            }
+            {canProceed && <>
+            <div className="form-row row">
+              <div className="form-group col-md-6">
+                <label htmlFor="nameInput">Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="nameInput"
+                  name="nameInput"
+                  placeholder="Enter name..."
+                  value={name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-row row">
+              <div className="form-group col-md-6">
+                <label htmlFor="mobileInput">Mobile No.</label>
+                <input
+                  type="tel"
+                  className="form-control"
+                  id="mobileInput"
+                  name="mobileInput"
+                  placeholder="Enter mobile number..."
+                  value={mobile}
+                  onChange={handleChange}
+                  title="(Ten digit numbers only)"
+                  pattern="\d{10}"
+                  required
+                />
+              </div>
+            </div>
             <div className="form-row row">
               <div className="form-group col-md-6">
                 <div className="form-group">
@@ -254,10 +285,7 @@ export default function NewRequest() {
                     {Object.values(SERVICE_TYPES)
                       .sort()
                       .map((serviceTypesValue) => (
-                        <option
-                          key={serviceTypesValue}
-                          value={serviceTypesValue}
-                        >
+                        <option key={serviceTypesValue} value={serviceTypesValue} >
                           {serviceTypesValue}
                         </option>
                       ))}
@@ -302,6 +330,7 @@ export default function NewRequest() {
                 </svg>
               </button>
             </div>
+            </> }
           </form>
         </div>
       </div>
