@@ -24,7 +24,7 @@ export default function HeaderMenu() {
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink to="/new-request" className="nav-link">
+              <NavLink to="/select-request-type" className="nav-link">
                 New Request
               </NavLink>
             </li>
