@@ -52,10 +52,10 @@ export const ADDRESSES = {
     14: ["A", "B", "C", "D", "E", "F", "G", "H"],
   },
   G: {
-    1: ["A", "B", "C", "D", "E", "F"],
-    2: ["A", "B", "C", "D", "E", "F"],
-    3: ["A", "B", "C", "D", "E", "F"],
-    4: ["A", "B", "C", "D", "E", "F"],
+    1: ["A", "B", "C", "D", "E", "F", "G", "H"],
+    2: ["A", "B", "C", "D", "E", "F", "G", "H"],
+    3: ["A", "B", "C", "D", "E", "F", "G", "H"],
+    4: ["A", "B", "C", "D", "E", "F", "G", "H"],
   },
 };
 
@@ -63,8 +63,6 @@ export const SERVICE_TYPES = {
   PLUMBER: "Plumber",
   ELECTRICIAN: "Electrician",
   SEWERMAN: "Sewerman",
-  DJB: "DJB",
-  MCD: "MCD",
 };
 
 export const REQUEST_EVENTS = {

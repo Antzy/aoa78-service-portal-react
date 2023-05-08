@@ -11,8 +11,10 @@ import { addServiceRequest, getPaymentBalanceByAddress } from "../../models/fire
 export default function NewRequest() {
   const [canProceed, setCanProceed] = useState(false);
   const [showPaymentError, setShowPaymentError] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(false);
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
   const [serviceType, setServiceType] = useState("");
   const [details, setDetails] = useState("");
   const [address, setAddress] = useState({
@@ -42,6 +44,9 @@ export default function NewRequest() {
       case "mobileInput":
         setMobile(value);
         break;
+      case "emailInput":
+        setEmail(value);
+        break;
       case "serviceTypeInput":
         setServiceType(value);
         break;
@@ -49,51 +54,33 @@ export default function NewRequest() {
         setDetails(value);
         break;
       case "blockInput":
-        newAddress.block = value;
-        if (
-          !ADDRESSES[newAddress.block] ||
-          !ADDRESSES[newAddress.block][newAddress.building]
-        ) {
-          newAddress.building = "";
-          newAddress.flat = "";
-        } else {
-          if (
-            !ADDRESSES[newAddress.block][newAddress.building].includes(
-              newAddress.flat
-            )
-          ) {
-            newAddress.flat = "";
-          }
-        }
-        setAddress(newAddress);
-        // setAddress({ ...address, block: value, building: "", flat: "" });
+        setCanProceed(false)
+        setShowPaymentError(false)
+        setAddress({ ...address, block: value, building: "", flat: "" });
         break;
       case "buildingInput":
-        newAddress.building = value;
-        if (
-          !ADDRESSES[newAddress.block] ||
-          !ADDRESSES[newAddress.block][newAddress.building] ||
-          !ADDRESSES[newAddress.block][newAddress.building].includes(
-            newAddress.flat
-          )
-        ) {
-          newAddress.flat = "";
-        }
-        setAddress(newAddress);
-        // setAddress({ ...address, building: value, flat: "" });
+        setCanProceed(false)
+        setShowPaymentError(false)
+        setAddress({ ...address, building: value, flat: "" });
         break;
       case "flatInput":
+        setCanProceed(false)
+        setShowPaymentError(false)
+
         setAddress({ ...address, flat: value });
         if(params.has(REQUEST_PARAMS.SERVICE_TYPE)) {
           setServiceType(params.get(REQUEST_PARAMS.SERVICE_TYPE))
         }
         let paymentDtl;
         if(!params.has(REQUEST_PARAMS.BY_PASS)) {
+          setShowSpinner(true)
           paymentDtl = await getPaymentBalanceByAddress(`${address.block}${address.building}${value}`)
+          setShowSpinner(false)
         }
         if(params.has(REQUEST_PARAMS.BY_PASS) || paymentDtl.balance <= 0) {
           setCanProceed(true)
           setShowPaymentError(false)
+          setShowSpinner(false)
         } else {
           setCanProceed(false)
           setShowPaymentError(true)
@@ -108,6 +95,7 @@ export default function NewRequest() {
     let addedRequestId = await addServiceRequest(
       name,
       mobile,
+      email,
       `${address.block}${address.building}${address.flat}`,
       serviceType,
       details
@@ -226,6 +214,14 @@ export default function NewRequest() {
                 </div>
               </div>
             </div>
+            {showSpinner && <>
+              <div align="center">
+              <div className="spinner-border text-secondary" role="status">
+                <span className="sr-only">Loading...</span>
+              </div>
+            </div>
+            </>
+            }
             {showPaymentError && <>
             <div align="center">
               <h3> <span className="text-danger"> Oops !.. </span><br/> It seems you have dues in your RWA subscription </h3>
@@ -243,16 +239,17 @@ export default function NewRequest() {
                   className="form-control"
                   id="nameInput"
                   name="nameInput"
-                  placeholder="Enter name..."
+                  placeholder="Enter name.."
                   value={name}
                   onChange={handleChange}
+                  title="Please enter your Name."
                   required
                 />
               </div>
             </div>
             <div className="form-row row">
               <div className="form-group col-md-6">
-                <label htmlFor="mobileInput">Mobile No.</label>
+                <label htmlFor="mobileInput">Mobile number</label>
                 <input
                   type="tel"
                   className="form-control"
@@ -261,10 +258,30 @@ export default function NewRequest() {
                   placeholder="Enter mobile number..."
                   value={mobile}
                   onChange={handleChange}
-                  title="(Ten digit numbers only)"
+                  title="Please enter your 10 digit mobile number."
                   pattern="\d{10}"
                   required
                 />
+                <small id="mobileHelp" className="form-text text-muted">Required to get in touch with you.</small>
+              </div>
+            </div>
+            <div className="form-row row">
+              <div className="form-group col-md-6">
+                <label htmlFor="emailInput">Email Address</label>
+                <div className="input-group mb-3">
+                  <div className="input-group-prepend">
+                    <span className="input-group-text" id="basic-addon1">@</span>
+                  </div>
+                  <input type="email" className="form-control" 
+                    id="emailInput" name="emailInput"
+                    value={email} onChange={handleChange}
+                    title="Please enter your email."
+                    pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+                    required
+                    placeholder="Enter your email ..." 
+                    aria-label="Email" aria-describedby="basic-addon1" />
+                </div>
+                <small id="emailHelp" className="form-text text-muted">Required to keep you updated.</small>
               </div>
             </div>
             <div className="form-row row">

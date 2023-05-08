@@ -3,16 +3,19 @@ import "firebase/auth";
 import "firebase/firestore";
 import { REQUEST_EVENTS, REQUEST_STATUS, USERS } from "../constants/constants";
 import Moment from 'moment';
+// import sendgrid from '@sendgrid/mail';
 
 var firebaseConfig = {
-  apiKey: process.env.REACT_APP_API_KEY,
-  authDomain: process.env.REACT_APP_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_APP_ID,
-  measurementId: process.env.REACT_APP_MEASUREMENT_ID,
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
+
+// sendgrid.setApiKey(process.env.REACT_APP_SENDGRID_API_KEY);
 
 firebase.initializeApp(firebaseConfig);
 export const firebaseApp = firebase;
@@ -22,6 +25,7 @@ export const firestore = firebase.firestore();
 export const addServiceRequest = async (
   name,
   mobile,
+  email,
   address,
   serviceType,
   details
@@ -32,6 +36,7 @@ export const addServiceRequest = async (
       name,
       mobile,
       address,
+      email,
       serviceType,
       status: REQUEST_STATUS.PENDING_APPROVAL,
       logs: [
@@ -48,9 +53,17 @@ export const addServiceRequest = async (
     console.log(requestData);
 
     let id = address + (new Moment().format("YYYYMMDD")) + serviceType
-    let docRef = await firestore.doc("requests/" + id).set(requestData);
+    await firestore.doc("requests/" + id).set(requestData);
 
-    console.log(docRef);
+    // console.log(docRef);
+    // let email_options = {
+    //   from: '',
+    //   to: '',
+    //   subject: 'New Request - ' + id,
+    //   html: '<Html lang="en">  <Button href=""">New Request Received - '+id+'</Button> </Html>',
+    // };
+    // sendgrid.send(email_options);
+
     return id;
   } catch (err) {
     console.log(err);
