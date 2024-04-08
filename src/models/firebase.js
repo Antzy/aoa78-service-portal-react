@@ -118,6 +118,10 @@ export const getPaymentBalanceByAddress = async (address) => {
     if (!paymentDtl || paymentDtl.empty)
       throw "Unable to get payment requests for the provided address";
 
+    //Add Buffer for dues to be collected for a new Financial Year
+    if(new Moment().format("MM") == "04") {
+      return paymentDtl.data() - 3600;  
+    }
     return paymentDtl.data();
   } catch (err) {
     console.log(err);
