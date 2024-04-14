@@ -6,11 +6,13 @@ import {
   SERVICE_TYPES,
   REQUEST_PARAMS
 } from "../../constants/constants";
+import Moment from 'moment';
 import { addServiceRequest, getPaymentBalanceByAddress } from "../../models/firebase";
 
 export default function NewRequest() {
   const [canProceed, setCanProceed] = useState(false);
   const [showPaymentError, setShowPaymentError] = useState(false);
+  const [showBufferPaymentWarning, setShowBufferPaymentWarning] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -56,16 +58,19 @@ export default function NewRequest() {
       case "blockInput":
         setCanProceed(false)
         setShowPaymentError(false)
+        setShowBufferPaymentWarning(false)
         setAddress({ ...address, block: value, building: "", flat: "" });
         break;
       case "buildingInput":
         setCanProceed(false)
         setShowPaymentError(false)
+        setShowBufferPaymentWarning(false)
         setAddress({ ...address, building: value, flat: "" });
         break;
       case "flatInput":
         setCanProceed(false)
         setShowPaymentError(false)
+        setShowBufferPaymentWarning(false)
 
         setAddress({ ...address, flat: value });
         if(params.has(REQUEST_PARAMS.SERVICE_TYPE)) {
@@ -77,14 +82,27 @@ export default function NewRequest() {
           paymentDtl = await getPaymentBalanceByAddress(`${address.block}${address.building}${value}`)
           setShowSpinner(false)
         }
-        if(params.has(REQUEST_PARAMS.BY_PASS) || paymentDtl.balance <= 0) {
+        if(params.has(REQUEST_PARAMS.BY_PASS) ||
+        paymentDtl.balance <= 0) {
           setCanProceed(true)
           setShowPaymentError(false)
+          setShowBufferPaymentWarning(false)
           setShowSpinner(false)
         } else {
           setCanProceed(false)
           setShowPaymentError(true)
+          setShowBufferPaymentWarning(false)
         }
+
+        // Adding a buffer month to clear dues
+        let currentMonth = new Moment().format("MM")
+        if(currentMonth == "04" && paymentDtl.balance <= 3600) {
+          setCanProceed(true)
+          setShowPaymentError(false)
+          setShowBufferPaymentWarning(true)
+          setShowSpinner(false) 
+        }
+
         break;
     }
   };
@@ -226,6 +244,14 @@ export default function NewRequest() {
             <div align="center">
               <h3> <span className="text-danger"> Oops !.. </span><br/> It seems you have dues in your RWA subscription </h3>
               <br/> Please clear them and come back again tomorrow. 
+              <br/> To know your dues, <a href="https://wa.me/919810762010?text=Hi" target="_blank">please reach out the Treasurer</a>
+            </div>
+            </>
+            }
+            {showBufferPaymentWarning && <>
+            <div align="center">
+              <h3> <span className="text-warning"> Warning !.. </span><br/> Your current year's RWA subscription is pending </h3>
+              <br/> Please clear them to continue using the services in future. 
               <br/> To know your dues, <a href="https://wa.me/919810762010?text=Hi" target="_blank">please reach out the Treasurer</a>
             </div>
             </>
