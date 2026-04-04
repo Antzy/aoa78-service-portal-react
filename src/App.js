@@ -10,16 +10,21 @@ import SelectRequestType from "./views/new-request/SelectRequestType";
 import NewRequest from "./views/new-request/NewRequest";
 import SearchRequests from "./views/search-requests/SearchRequests";
 import ViewRequests from "./views/view-requests/ViewRequests";
+import Login from "./views/login/Login";
+import AuthContextProvider from "./contexts/AuthContext";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   return (
-    <>
+    <AuthContextProvider>
       <Router>
         <HeaderMenu />
 
         <Switch>
+          <Route path="/login">
+            <Login />
+          </Route>
           <Route path="/view-requests">
             <ViewRequests />
           </Route>
@@ -37,7 +42,7 @@ function App() {
           </Route>
         </Switch>
       </Router>
-    </>
+    </AuthContextProvider>
   );
 }
 

@@ -1,7 +1,11 @@
 import { NavLink, Link } from "react-router-dom";
 import { Navbar, Container, Nav } from "react-bootstrap";
+import { useContext } from "react";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function HeaderMenu() {
+  const { user, profile, logout } = useContext(AuthContext);
+
   return (
     <Navbar fixed="top" bg="dark" variant="dark" expand="lg">
       <Container fluid>
@@ -28,6 +32,30 @@ export default function HeaderMenu() {
                 New Request
               </NavLink>
             </li>
+            {!user ? (
+              <li className="nav-item">
+                <NavLink to="/login" className="nav-link">
+                  Login
+                </NavLink>
+              </li>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <span className="nav-link">
+                    {profile?.displayName || user.email?.split('@')[0]}
+                  </span>
+                </li>
+                <li className="nav-item">
+                  <a
+                    className="nav-link"
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); logout(); }}
+                  >
+                    Logout
+                  </a>
+                </li>
+              </>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>

@@ -1,9 +1,9 @@
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/firestore";
+import "firebase/compat/storage";
 import { REQUEST_EVENTS, REQUEST_STATUS, USERS } from "../constants/constants";
 import Moment from 'moment';
-// import sendgrid from '@sendgrid/mail';
 
 var firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -15,12 +15,20 @@ var firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
-// sendgrid.setApiKey(process.env.REACT_APP_SENDGRID_API_KEY);
 
 firebase.initializeApp(firebaseConfig);
 export const firebaseApp = firebase;
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
+export const storage = firebase.storage();
+
+export const login = async (email, password) => {
+  await auth.signInWithEmailAndPassword(email, password);
+};
+
+export const signOut = async () => {
+  await auth.signOut();
+};
 
 export const addServiceRequest = async (
   name,
@@ -62,8 +70,6 @@ export const addServiceRequest = async (
     //   subject: 'New Request - ' + id,
     //   html: '<Html lang="en">  <Button href=""">New Request Received - '+id+'</Button> </Html>',
     // };
-    // sendgrid.send(email_options);
-
     return id;
   } catch (err) {
     console.log(err);

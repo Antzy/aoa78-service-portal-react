@@ -25,6 +25,7 @@ export default function NewRequest() {
     flat: "",
   });
   const [requestId, setRequestId] = useState(null);
+  const [paymentDtl, setPaymentDtl] = useState(null);
   const history = useHistory();
   const location = useLocation();
 
@@ -80,27 +81,31 @@ export default function NewRequest() {
         if(!params.has(REQUEST_PARAMS.BY_PASS)) {
           setShowSpinner(true)
           paymentDtl = await getPaymentBalanceByAddress(`${address.block}${address.building}${value}`)
+          setPaymentDtl(paymentDtl);
           setShowSpinner(false)
+        } else {
+          setPaymentDtl(null);
         }
+
+        let currentMonth = new Moment().format("MM")
+        console.log(currentMonth + "--" + paymentDtl.balance)
+
         if(params.has(REQUEST_PARAMS.BY_PASS) ||
         paymentDtl.balance <= 0) {
           setCanProceed(true)
           setShowPaymentError(false)
           setShowBufferPaymentWarning(false)
           setShowSpinner(false)
-        } else {
-          setCanProceed(false)
-          setShowPaymentError(true)
-          setShowBufferPaymentWarning(false)
-        }
-
-        // Adding a buffer month to clear dues
-        let currentMonth = new Moment().format("MM")
-        if(currentMonth == "04" && paymentDtl.balance <= 3600) {
+        } else if(currentMonth == "04" && paymentDtl.balance <= 3600) {
+          // Adding a buffer month to clear dues
           setCanProceed(true)
           setShowPaymentError(false)
           setShowBufferPaymentWarning(true)
           setShowSpinner(false) 
+        } else {
+          setCanProceed(false)
+          setShowPaymentError(true)
+          setShowBufferPaymentWarning(false)
         }
 
         break;
@@ -242,7 +247,7 @@ export default function NewRequest() {
             }
             {showPaymentError && <>
             <div align="center">
-              <h3> <span className="text-danger"> Oops !.. </span><br/> It seems you have dues in your RWA subscription </h3>
+              <h3> <span className="text-danger"> Oops !.. </span><br/> As of {paymentDtl.updated_ts}, It seems you have dues in your RWA subscription </h3>
               <br/> Please clear them and come back again tomorrow. 
               <br/> To know your dues, <a href="https://wa.me/919810762010?text=Hi" target="_blank">please reach out the Treasurer</a>
             </div>
@@ -250,7 +255,7 @@ export default function NewRequest() {
             }
             {showBufferPaymentWarning && <>
             <div align="center">
-              <h3> <span className="text-warning"> Warning !.. </span><br/> Your current year's RWA subscription is pending </h3>
+              <h3> <span className="text-warning"> Warning !.. </span><br/> As of {paymentDtl.updated_ts}, Your current year's RWA subscription is pending </h3>
               <br/> Please clear them to continue using the services in future. 
               <br/> To know your dues, <a href="https://wa.me/919810762010?text=Hi" target="_blank">please reach out the Treasurer</a>
             </div>
