@@ -96,7 +96,7 @@ export default function NewRequest() {
           setShowPaymentError(false)
           setShowBufferPaymentWarning(false)
           setShowSpinner(false)
-        } else if(currentMonth == "04" && paymentDtl.balance <= 3600) {
+        } else if(currentMonth == "04" && paymentDtl.balance <= 4000) {
           // Adding a buffer month to clear dues
           setCanProceed(true)
           setShowPaymentError(false)
